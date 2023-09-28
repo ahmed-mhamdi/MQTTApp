@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -8,9 +9,10 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 enum MQTTAppConnectionState { connected, disconnected, connecting }
 
 class HomeController extends GetxController {
+  final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
   MQTTAppConnectionState currentState = MQTTAppConnectionState.disconnected;
   MqttServerClient? client;
-  final String identifier = Platform.localHostname;
+  late final String identifier;
   String host = "";
   final String topic = "";
 
@@ -145,8 +147,19 @@ class HomeController extends GetxController {
 
   @override
   void onInit() {
+    getDeviceInfo();
     setStateText(currentState);
     super.onInit();
+  }
+
+  getDeviceInfo() async {
+    if (Platform.isAndroid) {
+      var info = await deviceInfo.androidInfo;
+      identifier = info.id;
+    } else if (Platform.isIOS) {
+      var info = await deviceInfo.iosInfo;
+      identifier = info.identifierForVendor!;
+    }
   }
 
   @override
